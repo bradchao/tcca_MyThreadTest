@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private UIHandler handler;
     private int i;
     private Timer timer;
+    private MyTask myTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,13 +36,33 @@ public class MainActivity extends AppCompatActivity {
 //        mt2.start();
     }
     public void test2(View v){
-        timer.schedule(new MyTask(), 1000, 500);
+        if (myTask == null) {
+            myTask = new MyTask();
+            timer.schedule(myTask, 1000, 500);
+        }
+        
+    }
+    public void test3(View v){
+        if (myTask != null){
+            myTask.cancel();
+            myTask = null;
+        }
+    }
+
+    @Override
+    public void finish() {
+        if (timer != null){
+            timer.cancel();
+            timer = null;
+        }
+        super.finish();
     }
 
     private class MyTask extends TimerTask {
         @Override
         public void run() {
             Log.i("brad", "i = " + i++);
+            handler.sendEmptyMessage(i);
         }
     }
 
@@ -60,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                 Bundle data = new Bundle();
                 data.putString("mesg", name + " = " + i);
                 mesg.setData(data);
-                mesg.what = 0 ;
+                mesg.what = -1 ;
                 handler.sendMessage(mesg);
 
                 try {
@@ -78,8 +99,12 @@ public class MainActivity extends AppCompatActivity {
             super.handleMessage(msg);
 
             int what = msg.what;
-            String mesg = msg.getData().getString("mesg");
-            tv.setText(mesg);
+            if (what >= 0 ){
+                tv.setText("" + what);
+            }else {
+                String mesg = msg.getData().getString("mesg");
+                tv.setText(mesg);
+            }
 
         }
     }
